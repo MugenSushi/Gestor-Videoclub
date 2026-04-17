@@ -11,7 +11,7 @@
 - [x] **DB-02**: La tabla `items` incluye columna `num_seasons INTEGER` para evitar llamadas extra a la API
 - [x] **DB-03**: Nueva tabla `episode_progress (user_id INTEGER, item_id INTEGER FK items.id, season_number INTEGER, episode_number INTEGER, watched INTEGER, watched_at TEXT)` con PK compuesta `(user_id, item_id, season_number, episode_number)` — usa `item_id` (FK a `items.id`), NO `tmdb_series_id TEXT`
 - [x] **DB-04**: `SCHEMA_VERSION` bumpeado a 7; migración ejecuta solo si `v < 7`
-- [ ] **DB-05**: `tmdb_id` se persiste al añadir o enriquecer un ítem de tipo serie vía TMDb
+- [x] **DB-05**: `tmdb_id` se persiste al añadir o enriquecer un ítem de tipo serie vía TMDb
 
 ### API TMDb — Temporadas
 
@@ -79,7 +79,7 @@
 | DB-02 | Fase 1 | Complete |
 | DB-03 | Fase 1 | Complete |
 | DB-04 | Fase 1 | Complete |
-| DB-05 | Fase 1 | Pending |
+| DB-05 | Fase 1 | Complete |
 | API-01 | Fase 1 | Complete |
 | API-02 | Fase 1 | Complete |
 | API-03 | Fase 1 | Complete |

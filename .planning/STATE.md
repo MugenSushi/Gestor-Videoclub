@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-17T10:21:29.158Z"
+last_updated: "2026-04-17T10:25:16.512Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # STATE — Videoclub STARTUP: Series Tracking
@@ -24,25 +24,25 @@ progress:
 
 **Core value:** Saber exactamente en qué punto dejaste una serie y poder marcar episodios vistos de forma rápida sin salir de la app.
 
-**Current focus:** Phase 1 — DB + API Foundation
+**Current focus:** Phase 2 — SeasonViewWindow
 
 ---
 
 ## Current Position
 
-Phase: 1 (DB + API Foundation) — EXECUTING
-Plan: 2 of 3
+Phase: 1 (DB + API Foundation) — COMPLETE
+Plan: 3 of 3
 **Phase:** 1 — DB + API Foundation  
-**Plan:** 01-02 COMPLETE — TMDb Season API Layer  
-**Status:** Executing Phase 1 (Plan 03 remaining)
+**Plan:** 01-03 COMPLETE — tmdb_id + num_seasons Wiring  
+**Status:** Phase 1 complete — ready for Phase 2
 
 ```
-[######    ] Phase 1: DB + API Foundation (2/3 plans done)
+[██████████] Phase 1: DB + API Foundation (3/3 plans done) COMPLETE
 [          ] Phase 2: SeasonViewWindow
 [          ] Phase 3: Polish + Retrocompat
 ```
 
-**Overall progress:** 0 / 3 phases complete
+**Overall progress:** 1 / 3 phases complete
 
 ---
 
@@ -58,6 +58,7 @@ Plan: 2 of 3
 ---
 | Phase 01-db-api-foundation P01 | 79s | 2 tasks | 1 files |
 | Phase 01-db-api-foundation P02 | 62 | 2 tasks | 1 files |
+| Phase 01-db-api-foundation P03 | 60 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Plan: 2 of 3
 | Phase 3 is deliberately last | Grid badge (GRID-01) requires episode_progress data from Phase 1+2; retrocompat (BACK-01/02) requires the button to exist from Phase 2 |
 | Two-function lru_cache split for season fetcher | Prevents caching transient empty-dict results — only real 200 responses and permanent 404 sentinels are cached; public wrapper calls cache_clear() on transient errors |
 | media_type != 'movie' guard in fetch_tmdb_detail | Backward compatible — movies receive no _num_seasons/_seasons keys; TV series get both from the already-fetched /tv/{id} response at no extra API cost |
+| tmdb_id/num_seasons before user_id in add_item | Item-level fields logically precede user-level; safe defaults (""/0) preserve backward compat for BatchImportDialog without changes |
+| _worker injects _tmdb_id via fetch_tmdb_multi | smart_search/fetch_tmdb single-result path does not return _tmdb_id; fetch_tmdb_multi does — injection fills the gap for series manual add path |
 
 ### Critical Implementation Notes
 
@@ -89,7 +92,8 @@ None.
 ### Todos
 
 - [x] Execute Phase 1 Plan 02 (API functions: fetch_tmdb_detail extension, fetch_tmdb_season_episodes) — DONE
-- [ ] Execute Phase 1 Plan 03 (SmartSearchDialog call sites: add_item extension, _add_result, _finish_manual, _add_manual wiring)
+- [x] Execute Phase 1 Plan 03 (SmartSearchDialog call sites: add_item extension, _add_result, _finish_manual, _add_manual wiring) — DONE
+- [ ] Execute Phase 2 (SeasonViewWindow UI)
 
 ---
 

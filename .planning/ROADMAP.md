@@ -9,7 +9,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: DB + API Foundation** — Schema migration v6→v7, tmdb_id persistence, season fetch functions
+- [x] **Phase 1: DB + API Foundation** — Schema migration v6→v7, tmdb_id persistence, season fetch functions (completed 2026-04-17)
 - [ ] **Phase 2: SeasonViewWindow** — Full season/episode UI with lazy loading, checkboxes, and progress counters
 - [ ] **Phase 3: Polish + Retrocompat** — Progress badge on grid cards, disabled-state handling for legacy series, dark theme styling
 
@@ -29,12 +29,12 @@
   4. The season list for a series is built from the TMDb `seasons[]` array (not `range(1, N+1)`), so Season 0 ("Especiales") appears as a tab when it exists in TMDb data
   5. HTTP 404, 429, and network errors from the TMDb season endpoint each produce a distinct log entry and a user-visible message rather than a silent failure or crash
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 01-01-PLAN.md — Schema migration: SCHEMA_VERSION=7, ALTER TABLE tmdb_id/num_seasons, episode_progress table and DB methods
 - [x] 01-02-PLAN.md — API layer: extend fetch_tmdb_detail return, add fetch_tmdb_season_episodes with lru_cache and error handling
-- [ ] 01-03-PLAN.md — Wire tmdb_id through add_item signature and SmartSearchDialog call sites
+- [x] 01-03-PLAN.md — Wire tmdb_id through add_item signature and SmartSearchDialog call sites
 
 ---
 
@@ -75,7 +75,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. DB + API Foundation | 2/3 | In Progress|  |
+| 1. DB + API Foundation | 3/3 | Complete   | 2026-04-17 |
 | 2. SeasonViewWindow | 0/? | Not started | - |
 | 3. Polish + Retrocompat | 0/? | Not started | - |
 
