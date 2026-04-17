@@ -975,6 +975,66 @@ def fetch_tmdb_detail(tmdb_id: str, media_type: str = "movie") -> dict:
     return {}
 
 
+@lru_cache(maxsize=50)
+def _fetch_tmdb_season_cached(tmdb_id: str, season_number: int) -> dict:
+    """Internal cached fetcher — only successful responses are cached.
+    Use fetch_tmdb_season_episodes() as the public API."""
+    key = CFG.get("tmdb_api_key", "")
+    if not key or not tmdb_id:
+        return {}
+    try:
+        url = (f"https://api.themoviedb.org/3/tv/{tmdb_id}"
+               f"/season/{season_number}"
+               f"?api_key={key}&language=es-ES")
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            return resp.json()
+        elif resp.status_code == 404:
+            log.warning(
+                f"fetch_tmdb_season_episodes: 404 tmdb_id={tmdb_id} "
+                f"season={season_number} — no data in TMDb yet"
+            )
+            return {"_404": True}   # sentinel — permanent, non-retryable, safe to cache
+        elif resp.status_code == 429:
+            log.warning(
+                f"fetch_tmdb_season_episodes: 429 rate limit "
+                f"tmdb_id={tmdb_id} season={season_number}"
+            )
+            import time; time.sleep(1)
+            resp2 = requests.get(url, timeout=10)
+            if resp2.status_code == 200:
+                return resp2.json()
+            log.error(
+                f"fetch_tmdb_season_episodes: retry after 429 also failed "
+                f"({resp2.status_code})"
+            )
+            return {}   # transient — NOT cached (public wrapper clears cache)
+        else:
+            log.error(
+                f"fetch_tmdb_season_episodes: HTTP {resp.status_code} "
+                f"tmdb_id={tmdb_id} season={season_number}"
+            )
+            return {}
+    except Exception as e:
+        log.error(f"fetch_tmdb_season_episodes: network error: {e}")
+    return {}
+
+
+def fetch_tmdb_season_episodes(tmdb_id: str, season_number: int) -> dict:
+    """Returns TMDb season object with 'episodes' list.
+    Cached per session for successful responses and permanent 404s.
+    Transient network/5xx errors are NOT cached — next call retries.
+    Returns {} on any error; caller checks data.get('episodes', [])."""
+    result = _fetch_tmdb_season_cached(tmdb_id, season_number)
+    if not result:
+        # Transient error — clear cache so next call retries
+        _fetch_tmdb_season_cached.cache_clear()
+        return {}
+    if result.get("_404"):
+        return {}   # permanent 404 — already cached, return empty to caller
+    return result
+
+
 def fetch_duckduckgo(title: str) -> dict:
     """
     Búsqueda web general vía DuckDuckGo Instant Answer API.
