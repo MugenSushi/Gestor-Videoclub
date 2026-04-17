@@ -2116,7 +2116,11 @@ class SmartSearchDialog(tk.Toplevel):
             data.get("Genre", "") or "",
             data.get("Year", "") or "",
             data.get("Plot", "") or "",
-            poster_url, user_id=uid, **extra
+            poster_url,
+            tmdb_id=data.get("_tmdb_id", ""),
+            num_seasons=data.get("_num_seasons", 0),
+            user_id=uid,
+            **extra
         )
         if ok:
             self._status.config(
@@ -2150,6 +2154,16 @@ class SmartSearchDialog(tk.Toplevel):
             data = smart_search(title)
             data["Type"] = itype_forced        # respetar el tipo que eligió el usuario
             data["Title"] = data.get("Title") or title
+
+            # Inject _tmdb_id for series — smart_search/fetch_tmdb does not return _tmdb_id
+            # (fetch_tmdb_multi does). Needed so _finish_manual can persist tmdb_id.
+            if (itype_forced == "series"
+                    and data.get("_source") == "tmdb"
+                    and CFG.get("tmdb_api_key")):
+                candidates = fetch_tmdb_multi(title, type_hint="series")
+                if candidates:
+                    data["_tmdb_id"] = candidates[0].get("_tmdb_id", "")
+
             self.after(0, lambda: self._finish_manual(data, itype_forced))
 
         threading.Thread(target=_worker, daemon=True).start()
@@ -2184,7 +2198,11 @@ class SmartSearchDialog(tk.Toplevel):
             data.get("Genre", "") or "",
             data.get("Year", "") or "",
             data.get("Plot", "") or "",
-            poster_url, user_id=self.app_root.active_user_id, **extra
+            poster_url,
+            tmdb_id=data.get("_tmdb_id", ""),
+            num_seasons=data.get("_num_seasons", 0),
+            user_id=self.app_root.active_user_id,
+            **extra
         )
         if ok:
             src = data.get("_source", "manual")
