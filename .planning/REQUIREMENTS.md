@@ -15,11 +15,11 @@
 
 ### API TMDb — Temporadas
 
-- [ ] **API-01**: Función `fetch_tmdb_seasons(tmdb_id)` obtiene la lista de temporadas desde `/tv/{id}` (sin llamada extra — datos ya en detail response)
-- [ ] **API-02**: Función `fetch_tmdb_season_episodes(tmdb_id, season_number)` obtiene episodios desde `/tv/{id}/season/{n}`
-- [ ] **API-03**: La lista de temporadas se construye desde el array `seasons[]` del detail response (no `range(1, N+1)`) para capturar Season 0 y numeración irregular
-- [ ] **API-04**: Caché `@lru_cache(maxsize=50)` en `fetch_tmdb_season_episodes` para evitar refetching dentro de la misma sesión
-- [ ] **API-05**: Error handling visible al usuario cuando TMDb no devuelve datos de una temporada
+- [x] **API-01**: Función `fetch_tmdb_seasons(tmdb_id)` obtiene la lista de temporadas desde `/tv/{id}` (sin llamada extra — datos ya en detail response)
+- [x] **API-02**: Función `fetch_tmdb_season_episodes(tmdb_id, season_number)` obtiene episodios desde `/tv/{id}/season/{n}`
+- [x] **API-03**: La lista de temporadas se construye desde el array `seasons[]` del detail response (no `range(1, N+1)`) para capturar Season 0 y numeración irregular
+- [x] **API-04**: Caché `@lru_cache(maxsize=50)` en `fetch_tmdb_season_episodes` para evitar refetching dentro de la misma sesión
+- [x] **API-05**: Error handling visible al usuario cuando TMDb no devuelve datos de una temporada
 
 ### Vista de Temporadas (SeasonViewWindow)
 
@@ -80,11 +80,11 @@
 | DB-03 | Fase 1 | Complete |
 | DB-04 | Fase 1 | Complete |
 | DB-05 | Fase 1 | Pending |
-| API-01 | Fase 1 | Pending |
-| API-02 | Fase 1 | Pending |
-| API-03 | Fase 1 | Pending |
-| API-04 | Fase 1 | Pending |
-| API-05 | Fase 1 | Pending |
+| API-01 | Fase 1 | Complete |
+| API-02 | Fase 1 | Complete |
+| API-03 | Fase 1 | Complete |
+| API-04 | Fase 1 | Complete |
+| API-05 | Fase 1 | Complete |
 | UI-01 | Fase 2 | Pending |
 | UI-02 | Fase 2 | Pending |
 | UI-03 | Fase 2 | Pending |

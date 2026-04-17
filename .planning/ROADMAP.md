@@ -29,11 +29,11 @@
   4. The season list for a series is built from the TMDb `seasons[]` array (not `range(1, N+1)`), so Season 0 ("Especiales") appears as a tab when it exists in TMDb data
   5. HTTP 404, 429, and network errors from the TMDb season endpoint each produce a distinct log entry and a user-visible message rather than a silent failure or crash
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 01-01-PLAN.md — Schema migration: SCHEMA_VERSION=7, ALTER TABLE tmdb_id/num_seasons, episode_progress table and DB methods
-- [ ] 01-02-PLAN.md — API layer: extend fetch_tmdb_detail return, add fetch_tmdb_season_episodes with lru_cache and error handling
+- [x] 01-02-PLAN.md — API layer: extend fetch_tmdb_detail return, add fetch_tmdb_season_episodes with lru_cache and error handling
 - [ ] 01-03-PLAN.md — Wire tmdb_id through add_item signature and SmartSearchDialog call sites
 
 ---
@@ -75,7 +75,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. DB + API Foundation | 1/3 | In Progress|  |
+| 1. DB + API Foundation | 2/3 | In Progress|  |
 | 2. SeasonViewWindow | 0/? | Not started | - |
 | 3. Polish + Retrocompat | 0/? | Not started | - |
 

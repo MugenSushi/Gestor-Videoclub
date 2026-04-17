@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-17T10:18:47.450Z"
+last_updated: "2026-04-17T10:21:29.158Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # STATE — Videoclub STARTUP: Series Tracking
@@ -33,11 +33,11 @@ progress:
 Phase: 1 (DB + API Foundation) — EXECUTING
 Plan: 2 of 3
 **Phase:** 1 — DB + API Foundation  
-**Plan:** 01-01 COMPLETE — DB Schema Migration v6 to v7  
-**Status:** Executing Phase 1
+**Plan:** 01-02 COMPLETE — TMDb Season API Layer  
+**Status:** Executing Phase 1 (Plan 03 remaining)
 
 ```
-[###       ] Phase 1: DB + API Foundation (1/3 plans done)
+[######    ] Phase 1: DB + API Foundation (2/3 plans done)
 [          ] Phase 2: SeasonViewWindow
 [          ] Phase 3: Polish + Retrocompat
 ```
@@ -57,6 +57,7 @@ Plan: 2 of 3
 
 ---
 | Phase 01-db-api-foundation P01 | 79s | 2 tasks | 1 files |
+| Phase 01-db-api-foundation P02 | 62 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Plan: 2 of 3
 | Phase 1 includes all API functions | DB and API are tightly coupled — `tmdb_id` must exist in DB before any API call makes sense to wire |
 | Phase 2 builds the full SeasonViewWindow in one phase | The 10 UI requirements form a single coherent deliverable; splitting would leave a non-functional half |
 | Phase 3 is deliberately last | Grid badge (GRID-01) requires episode_progress data from Phase 1+2; retrocompat (BACK-01/02) requires the button to exist from Phase 2 |
+| Two-function lru_cache split for season fetcher | Prevents caching transient empty-dict results — only real 200 responses and permanent 404 sentinels are cached; public wrapper calls cache_clear() on transient errors |
+| media_type != 'movie' guard in fetch_tmdb_detail | Backward compatible — movies receive no _num_seasons/_seasons keys; TV series get both from the already-fetched /tv/{id} response at no extra API cost |
 
 ### Critical Implementation Notes
 
@@ -85,7 +88,8 @@ None.
 
 ### Todos
 
-- [ ] Execute Phase 1 Plan 02 (API functions: add_item extension, fetch_tmdb_season_episodes, call sites)
+- [x] Execute Phase 1 Plan 02 (API functions: fetch_tmdb_detail extension, fetch_tmdb_season_episodes) — DONE
+- [ ] Execute Phase 1 Plan 03 (SmartSearchDialog call sites: add_item extension, _add_result, _finish_manual, _add_manual wiring)
 
 ---
 
