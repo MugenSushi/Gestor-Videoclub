@@ -51,8 +51,12 @@ Plans:
   5. Episodes with an `air_date` in the future are rendered in a muted/grey color and their checkboxes are non-interactive
   6. Closing SeasonViewWindow calls the `on_refresh` callback so the parent grid and DetailWindow reflect updated progress without requiring a manual F5 refresh
 
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — _season_pool global + DetailWindow "Ver temporadas" button + _open_seasons method
+- [ ] 02-02-PLAN.md — SeasonViewWindow class skeleton: modal, async seasons fetch, dark Notebook, lazy tab registration
+- [ ] 02-03-PLAN.md — Episode list: _load_season, _render_episode_list, canvas+frame, checkboxes, progress counter, mark-all
 
 ---
 
@@ -76,7 +80,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. DB + API Foundation | 3/3 | Complete   | 2026-04-17 |
-| 2. SeasonViewWindow | 0/? | Not started | - |
+| 2. SeasonViewWindow | 0/3 | Not started | - |
 | 3. Polish + Retrocompat | 0/? | Not started | - |
 
 ---
@@ -133,3 +137,4 @@ These constraints are enforced across all phases:
 ---
 *Roadmap created: 2026-04-14*
 *Updated: 2026-04-14 — Phase 1 plans added (3 plans, 3 waves)*
+*Updated: 2026-04-17 — Phase 2 plans added (3 plans, 3 waves sequential)*
