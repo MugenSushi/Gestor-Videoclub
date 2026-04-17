@@ -964,8 +964,12 @@ def fetch_tmdb_detail(tmdb_id: str, media_type: str = "movie") -> dict:
         wp        = d.get("watch/providers", {}).get("results", {}).get("ES", {})
         streaming = ", ".join(p["provider_name"] for p in wp.get("flatrate", [])[:4])
 
-        return {"Director": director, "Actors": actors,
-                "Studio": studio, "Streaming": streaming}
+        result = {"Director": director, "Actors": actors,
+                  "Studio": studio, "Streaming": streaming}
+        if media_type != "movie":
+            result["_num_seasons"] = d.get("number_of_seasons", 0)
+            result["_seasons"]     = d.get("seasons", [])
+        return result
     except Exception as e:
         log.error(f"fetch_tmdb_detail: {e}")
     return {}
