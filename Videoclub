@@ -359,14 +359,17 @@ class Database:
 
     def add_item(self, title, itype, rating, genres, year, plot, poster_url,
                 director="", actors="", studio="", streaming="",
+                tmdb_id: str = "", num_seasons: int = 0,
                 user_id: int = 0) -> bool:
         try:
             self.conn.execute(
                 "INSERT OR IGNORE INTO items"
-                "(title,type,rating,genres,year,plot,poster_url,director,actors,studio,streaming)"
-                " VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                "(title,type,rating,genres,year,plot,poster_url,"
+                "director,actors,studio,streaming,tmdb_id,num_seasons)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (title, itype, rating, genres, year, plot, poster_url,
-                 director or "", actors or "", studio or "", streaming or "")
+                 director or "", actors or "", studio or "", streaming or "",
+                 tmdb_id or "", num_seasons or 0)
             )
             if user_id:
                 self.conn.execute(
