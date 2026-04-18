@@ -426,6 +426,15 @@ class Database:
             return (0, 0)
         return (row["done"] or 0, row["total"])
 
+    def get_total_watched_count(self, user_id: int, item_id: int) -> int:
+        """Returns total watched episode count across all seasons for a series."""
+        row = self.conn.execute(
+            "SELECT COUNT(*) as cnt FROM episode_progress"
+            " WHERE user_id=? AND item_id=? AND watched=1",
+            (user_id, item_id)
+        ).fetchone()
+        return row["cnt"] if row else 0
+
     # ── helpers ────────────────────────────────────────────
     _ORDER = {
         "title":  "i.title ASC",
@@ -1404,6 +1413,18 @@ class ContentCard(tk.Frame):
                  text="🎬" if self.item["type"] == "movie" else "📺",
                  bg=tc, fg="white", font=(FONT_FAMILY, 8), padx=2
                  ).place(x=CARD_W - 24, y=2)
+
+        # Progress badge — series only, when watched_count >= 1
+        if self.item["type"] == "series":
+            watched_count = self.db.get_total_watched_count(self.user_id, self.item["id"])
+            if watched_count >= 1:
+                tk.Label(
+                    poster_zone,
+                    text=f"{watched_count} ep",
+                    bg=C["seen"], fg="white",
+                    font=(FONT_FAMILY, 7, "bold"),
+                    padx=3
+                ).place(x=2, y=POSTER_H - 18)
 
         self.poster_lbl.bind("<Button-1>", lambda e: self._show_detail())
         poster_zone.bind("<Button-1>",     lambda e: self._show_detail())
