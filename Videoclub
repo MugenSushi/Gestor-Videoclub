@@ -159,6 +159,7 @@ SCHEMA_VERSION = 7
 
 # ThreadPool global para posters (máx 4 workers simultáneos)
 _poster_pool  = ThreadPoolExecutor(max_workers=4, thread_name_prefix="poster")
+_season_pool  = ThreadPoolExecutor(max_workers=2, thread_name_prefix="season")
 _poster_lock  = threading.Lock()   # evita escrituras simultáneas al mismo archivo
 _stop_event   = threading.Event()
 
@@ -3777,6 +3778,7 @@ class VideoclubApp(tk.Tk):
         log.info("Cerrando app.")
         _stop_event.set()
         _poster_pool.shutdown(wait=False)
+        _season_pool.shutdown(wait=False)
         self.db.close()
         self.destroy()
 
