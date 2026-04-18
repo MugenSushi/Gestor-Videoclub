@@ -1572,6 +1572,18 @@ class DetailWindow(tk.Toplevel):
                   font=(FONT_FAMILY, 9), relief="flat",
                   command=self._delete, cursor="hand2").pack(fill="x", pady=(10, 0))
 
+        tmdb_id = self.item.get("tmdb_id") or ""
+        if itype == "series" and tmdb_id:
+            tk.Button(
+                left, text="📺 Ver temporadas",
+                bg=C["accent"], fg="white",
+                font=(FONT_FAMILY, 9), relief="flat", cursor="hand2",
+                command=lambda: self._open_seasons(
+                    self.item["tmdb_id"],
+                    self.item.get("num_seasons", 0)
+                )
+            ).pack(fill="x", pady=(8, 0))
+
         # ── Derecha ────────────────────────────────────
         right = tk.Frame(main, bg=C["bg"])
         right.pack(side="left", fill="both", expand=True)
@@ -1735,6 +1747,20 @@ class DetailWindow(tk.Toplevel):
         root = self.app_root
         if hasattr(root, 'set_genre_filter'):
             root.set_genre_filter(genre)
+
+    def _open_seasons(self, tmdb_id: str, num_seasons: int):
+        win = SeasonViewWindow(
+            self,
+            item=self.item,
+            user_id=self.user_id,
+            db=self.db,
+            on_refresh=self.on_refresh,
+            app_root=self.app_root,
+        )
+        win.bind(
+            "<Destroy>",
+            lambda e: self.grab_set() if self.winfo_exists() else None
+        )
 
     def _delete(self):
         if messagebox.askyesno("Eliminar",
