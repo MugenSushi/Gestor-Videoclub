@@ -70,8 +70,11 @@ Plans:
   2. A series card for a series with `tmdb_id = NULL` shows the "Ver temporadas" button in a disabled state; hovering over it shows a tooltip explaining why it is disabled and suggesting the user re-add the series via search
   3. The ttk.Notebook tabs in SeasonViewWindow use the dark theme palette (`C["bg"]`, `C["surface"]`, `C["muted"]`, `C["text"]`) — no light-grey default ttk appearance leaks through
 
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Database.get_total_watched_count + ContentCard progress badge (GRID-01)
+- [ ] 03-02-PLAN.md — DetailWindow disabled "Ver temporadas" branch + Tooltip (BACK-01, BACK-02)
 
 ---
 
@@ -81,7 +84,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. DB + API Foundation | 3/3 | Complete   | 2026-04-17 |
 | 2. SeasonViewWindow | 0/3 | Not started | - |
-| 3. Polish + Retrocompat | 0/? | Not started | - |
+| 3. Polish + Retrocompat | 0/2 | Not started | - |
 
 ---
 
@@ -138,3 +141,4 @@ These constraints are enforced across all phases:
 *Roadmap created: 2026-04-14*
 *Updated: 2026-04-14 — Phase 1 plans added (3 plans, 3 waves)*
 *Updated: 2026-04-17 — Phase 2 plans added (3 plans, 3 waves sequential)*
+*Updated: 2026-04-18 — Phase 3 plans added (2 plans, 2 waves sequential)*
