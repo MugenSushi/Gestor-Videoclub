@@ -54,9 +54,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — _season_pool global + DetailWindow "Ver temporadas" button + _open_seasons method
-- [ ] 02-02-PLAN.md — SeasonViewWindow class skeleton: modal, async seasons fetch, dark Notebook, lazy tab registration
-- [ ] 02-03-PLAN.md — Episode list: _load_season, _render_episode_list, canvas+frame, checkboxes, progress counter, mark-all
+- [x] 02-01-PLAN.md — _season_pool global + DetailWindow "Ver temporadas" button + _open_seasons method
+- [x] 02-02-PLAN.md — SeasonViewWindow class skeleton: modal, async seasons fetch, dark Notebook, lazy tab registration
+- [x] 02-03-PLAN.md — Episode list: _load_season, _render_episode_list, canvas+frame, checkboxes, progress counter, mark-all
 
 ---
 
