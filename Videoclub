@@ -1821,6 +1821,89 @@ class SeasonViewWindow(tk.Toplevel):
             self.on_refresh()
         self.destroy()
 
+    def _show_seasons_spinner(self):
+        self._spinner_frame = tk.Frame(self, bg=C["bg"])
+        self._spinner_frame.pack(fill="both", expand=True)
+        tk.Label(
+            self._spinner_frame,
+            text="Cargando temporadas...",
+            bg=C["bg"], fg=C["muted"],
+            font=(FONT_FAMILY, 10),
+        ).pack(expand=True)
+
+        def _worker():
+            data = fetch_tmdb_detail(self._tmdb_id, "tv")
+            self.app_root.after(0, lambda d=data: _on_seasons_done(d))
+
+        def _on_seasons_done(data):
+            if self._destroyed or not self.winfo_exists():
+                return
+            self._spinner_frame.destroy()
+            seasons = data.get("_seasons", [])
+            if not seasons:
+                tk.Label(
+                    self,
+                    text="No se pudo obtener las temporadas. Comprueba tu conexión.",
+                    bg=C["bg"], fg=C["muted"],
+                    font=(FONT_FAMILY, 10),
+                ).pack(expand=True)
+                tk.Button(
+                    self, text="Cerrar", command=self.destroy,
+                    bg=C["surface"], fg=C["muted"],
+                    font=(FONT_FAMILY, 9), relief="flat",
+                ).pack(pady=8)
+                return
+            self._build_notebook(seasons)
+
+        _season_pool.submit(_worker)
+
+    def _build_notebook(self, seasons: list):
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Dark.TNotebook",     background=C["bg"])
+        style.configure("Dark.TNotebook.Tab",
+                        background=C["surface"],
+                        foreground=C["muted"], padding=[10, 4])
+        style.map("Dark.TNotebook.Tab",
+                  background=[("selected", C["bg"])],
+                  foreground=[("selected", C["text"])])
+
+        self._nb = ttk.Notebook(self, style="Dark.TNotebook")
+        self._nb.pack(fill="both", expand=True, padx=0, pady=0)
+
+        self._season_order = []
+        for s in seasons:
+            sn   = s["season_number"]
+            name = (s.get("name") or "").strip()
+            if not name:
+                name = "Especiales" if sn == 0 else f"T{sn}"
+            frame = tk.Frame(self._nb, bg=C["bg"])
+            self._nb.add(frame, text=name)
+            self._season_frames[sn] = frame
+            self._season_order.append(sn)
+
+        self._nb.bind("<<NotebookTabChanged>>", lambda e: self._on_tab_changed())
+        self.after(0, self._on_tab_changed)
+
+    def _on_tab_changed(self):
+        if self._destroyed or not self.winfo_exists():
+            return
+        try:
+            idx = self._nb.index("current")
+        except Exception:
+            return
+        if idx < 0 or idx >= len(self._season_order):
+            return
+        season_number = self._season_order[idx]
+        if season_number in self._loaded_seasons:
+            return
+        self._loaded_seasons.add(season_number)
+        self._load_season(season_number, self._season_frames[season_number])
+
+    def _load_season(self, season_number: int, tab_frame: tk.Frame):
+        """Load episode list for season_number into tab_frame. Implemented in plan 03."""
+        pass
+
 
 # ══════════════════════════════════════════════════════════════
 # 11. SMART SEARCH RESULT DIALOG
