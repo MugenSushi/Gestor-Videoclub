@@ -1901,8 +1901,42 @@ class SeasonViewWindow(tk.Toplevel):
         self._load_season(season_number, self._season_frames[season_number])
 
     def _load_season(self, season_number: int, tab_frame: tk.Frame):
-        """Load episode list for season_number into tab_frame. Implemented in plan 03."""
-        pass
+        """Fetch episode list for season_number; render into tab_frame."""
+        spinner = tk.Label(
+            tab_frame,
+            text="Cargando temporada...",
+            bg=C["bg"], fg=C["muted"],
+            font=(FONT_FAMILY, 10),
+        )
+        spinner.pack(pady=16)
+
+        def _worker():
+            data = fetch_tmdb_season_episodes(self._tmdb_id, season_number)
+            self.app_root.after(0, lambda d=data: _on_done(d))
+
+        def _on_done(data):
+            if self._destroyed or not self.winfo_exists():
+                return
+            spinner.destroy()
+            if data.get("episodes"):
+                self._season_cache[season_number] = data
+                self._render_episode_list(tab_frame, season_number, data)
+            elif data.get("_404"):
+                tk.Label(
+                    tab_frame,
+                    text="Esta temporada aún no tiene datos en TMDb.",
+                    bg=C["bg"], fg=C["muted"],
+                    font=(FONT_FAMILY, 10),
+                ).pack(pady=16)
+            else:
+                tk.Label(
+                    tab_frame,
+                    text="Error al conectar con TMDb. Comprueba tu conexión.",
+                    bg=C["bg"], fg=C["muted"],
+                    font=(FONT_FAMILY, 10),
+                ).pack(pady=16)
+
+        _season_pool.submit(_worker)
 
 
 # ══════════════════════════════════════════════════════════════
