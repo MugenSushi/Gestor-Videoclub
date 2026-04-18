@@ -1594,16 +1594,26 @@ class DetailWindow(tk.Toplevel):
                   command=self._delete, cursor="hand2").pack(fill="x", pady=(10, 0))
 
         tmdb_id = self.item.get("tmdb_id") or ""
-        if itype == "series" and tmdb_id:
-            tk.Button(
-                left, text="📺 Ver temporadas",
-                bg=C["accent"], fg="white",
-                font=(FONT_FAMILY, 9), relief="flat", cursor="hand2",
-                command=lambda: self._open_seasons(
-                    self.item["tmdb_id"],
-                    self.item.get("num_seasons", 0)
+        if itype == "series":
+            if tmdb_id:
+                tk.Button(
+                    left, text="📺 Ver temporadas",
+                    bg=C["accent"], fg="white",
+                    font=(FONT_FAMILY, 9), relief="flat", cursor="hand2",
+                    command=lambda: self._open_seasons(
+                        self.item["tmdb_id"],
+                        self.item.get("num_seasons", 0)
+                    )
+                ).pack(fill="x", pady=(8, 0))
+            else:
+                btn = tk.Button(
+                    left, text="📺 Ver temporadas",
+                    bg=C["surface"], fg=C["muted"],
+                    font=(FONT_FAMILY, 9), relief="flat",
+                    state="disabled"
                 )
-            ).pack(fill="x", pady=(8, 0))
+                btn.pack(fill="x", pady=(8, 0))
+                Tooltip(btn, "Re-añade la serie via búsqueda para activar")
 
         # ── Derecha ────────────────────────────────────
         right = tk.Frame(main, bg=C["bg"])
