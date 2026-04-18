@@ -73,7 +73,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Database.get_total_watched_count + ContentCard progress badge (GRID-01)
+- [x] 03-01-PLAN.md — Database.get_total_watched_count + ContentCard progress badge (GRID-01)
 - [ ] 03-02-PLAN.md — DetailWindow disabled "Ver temporadas" branch + Tooltip (BACK-01, BACK-02)
 
 ---

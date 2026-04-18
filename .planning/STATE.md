@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-18T21:15:09.316Z"
+last_updated: "2026-04-18T21:15:58.689Z"
 progress:
   total_phases: 3
   completed_phases: 2
@@ -24,17 +24,17 @@ progress:
 
 **Core value:** Saber exactamente en qué punto dejaste una serie y poder marcar episodios vistos de forma rápida sin salir de la app.
 
-**Current focus:** Phase 02 — SeasonViewWindow
+**Current focus:** Phase 03 — polish-retrocompat
 
 ---
 
 ## Current Position
 
-Phase: 02 (SeasonViewWindow) — EXECUTING
-Plan: 1 of 3
+Phase: 03 (polish-retrocompat) — EXECUTING
+Plan: 1 of 2
 **Phase:** 3
 **Plan:** Not started
-**Status:** Ready to execute
+**Status:** Executing Phase 03
 
 ```
 [██████████] Phase 1: DB + API Foundation (3/3 plans done) COMPLETE
