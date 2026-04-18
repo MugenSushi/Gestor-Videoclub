@@ -1938,6 +1938,179 @@ class SeasonViewWindow(tk.Toplevel):
 
         _season_pool.submit(_worker)
 
+    def _render_episode_list(self, tab_frame: tk.Frame, season_number: int, data: dict):
+        import datetime  # safe to import inside method; datetime is stdlib
+        today = datetime.date.today().isoformat()
+        episodes = data.get("episodes", [])
+
+        # --- Init per-season state ---
+        self._season_bvars[season_number] = []
+
+        # --- Load existing progress from DB ---
+        progress = self.db.get_episode_progress(
+            self.user_id, self._item_id, season_number
+        )  # dict[int, bool]: ep_num -> watched
+
+        # === SEASON HEADER ===
+        header = tk.Frame(tab_frame, bg=C["surface"])
+        header.pack(fill="x", padx=0, pady=0)
+
+        left_hdr = tk.Frame(header, bg=C["surface"])
+        left_hdr.pack(side="left", fill="x", expand=True, padx=8, pady=(8, 4))
+
+        # Count totals for initial counter (only non-future episodes)
+        non_future_eps = [
+            ep for ep in episodes
+            if not (ep.get("air_date", "") and ep["air_date"] > today)
+        ]
+        total_countable = len(non_future_eps)
+        watched_init = sum(
+            1 for ep in non_future_eps
+            if progress.get(ep.get("episode_number", -1), False)
+        )
+
+        prog_lbl = tk.Label(
+            left_hdr,
+            text=f"{watched_init} / {total_countable} episodios vistos",
+            bg=C["surface"],
+            fg=C["seen"] if (total_countable > 0 and watched_init == total_countable)
+               else C["muted"],
+            font=(FONT_FAMILY, 9),
+        )
+        prog_lbl.pack(anchor="w")
+        self._prog_labels[season_number] = prog_lbl
+
+        # "Marcar toda la temporada" button — right side of header
+        tk.Button(
+            header,
+            text="Marcar toda la temporada",
+            bg=C["surface"], fg=C["muted"],
+            font=(FONT_FAMILY, 9), relief="flat", cursor="hand2",
+            command=lambda sn=season_number: self._mark_all_season(sn),
+        ).pack(side="right", padx=8, pady=(8, 4))
+
+        # Horizontal separator
+        tk.Frame(tab_frame, bg=C["border"], height=1).pack(fill="x")
+
+        # === EPISODE LIST (Canvas + Frame) ===
+        canvas    = tk.Canvas(tab_frame, bg=C["bg"], highlightthickness=0)
+        scrollbar = tk.Scrollbar(tab_frame, orient="vertical", command=canvas.yview)
+        inner     = tk.Frame(canvas, bg=C["bg"])
+
+        inner.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        for w in (canvas, inner):
+            w.bind(
+                "<MouseWheel>",
+                lambda e: canvas.yview_scroll(-1 * (e.delta // 120), "units")
+            )
+
+        # === EPISODE ROWS ===
+        if not episodes:
+            tk.Label(
+                inner,
+                text="No hay episodios disponibles para esta temporada.",
+                bg=C["bg"], fg=C["muted"],
+                font=(FONT_FAMILY, 9),
+            ).pack(pady=16)
+
+        for ep in episodes:
+            ep_num   = ep.get("episode_number", 0)
+            ep_name  = ep.get("name") or f"Episodio {ep_num}"
+            ep_date  = ep.get("air_date", "")
+            is_future = bool(ep_date) and ep_date > today
+            is_watched = progress.get(ep_num, False) and not is_future
+
+            row = tk.Frame(inner, bg=C["surface"])
+            row.pack(fill="x", padx=8, pady=4)
+            row.bind("<Enter>", lambda e, r=row: r.config(bg=C["hover"]))
+            row.bind("<Leave>", lambda e, r=row: r.config(bg=C["surface"]))
+
+            var = tk.BooleanVar(value=is_watched)
+            self._season_bvars[season_number].append(var)
+
+            def _toggle(n=ep_num, v=var, sn=season_number, r=row):
+                new_state = v.get()
+                self.db.set_episode_watched(
+                    self.user_id, self._item_id, sn, n, new_state
+                )
+                # Recount only non-future BooleanVars (index matches non_future_eps order)
+                watched_now = sum(1 for bv in self._season_bvars[sn] if bv.get())
+                total_now   = len(self._season_bvars[sn])
+                self._prog_labels[sn].config(
+                    text=f"{watched_now} / {total_now} episodios vistos",
+                    fg=C["seen"] if (total_now > 0 and watched_now == total_now)
+                       else C["muted"],
+                )
+
+            chk = tk.Checkbutton(
+                row, variable=var, command=_toggle,
+                bg=C["surface"], fg=C["text"],
+                activebackground=C["surface"], selectcolor=C["bg"],
+                relief="flat", cursor="hand2",
+            )
+            if is_future:
+                chk.config(state="disabled", fg=C["muted"])
+            chk.pack(side="left", padx=(6, 4))
+
+            ep_fg = C["muted"] if (is_future or not is_watched) else C["text"]
+            tk.Label(
+                row,
+                text=f"{ep_num:02d}. {ep_name}",
+                bg=C["surface"], fg=ep_fg,
+                font=(FONT_FAMILY, 9), anchor="w",
+            ).pack(side="left", fill="x", expand=True)
+
+            if ep_date:
+                tk.Label(
+                    row,
+                    text=ep_date[:7],
+                    bg=C["surface"], fg=C["border"],
+                    font=(FONT_FAMILY, 8),
+                ).pack(side="right", padx=8)
+
+    def _mark_all_season(self, season_number: int):
+        import datetime
+        today = datetime.date.today().isoformat()
+        data  = self._season_cache.get(season_number, {})
+        episodes = data.get("episodes", [])
+
+        bvars  = self._season_bvars.get(season_number, [])
+        bv_idx = 0   # index into bvars (parallel with non-future episodes)
+
+        for ep in episodes:
+            ep_num  = ep.get("episode_number", 0)
+            ep_date = ep.get("air_date", "")
+            is_future = bool(ep_date) and ep_date > today
+
+            if is_future:
+                continue   # skip — matches disabled checkbox state (D-10)
+
+            self.db.set_episode_watched(
+                self.user_id, self._item_id, season_number, ep_num, True
+            )
+            if bv_idx < len(bvars):
+                bvars[bv_idx].set(True)
+            bv_idx += 1
+
+        # Update counter
+        total_now   = len(bvars)
+        watched_now = sum(1 for bv in bvars if bv.get())
+        if season_number in self._prog_labels:
+            self._prog_labels[season_number].config(
+                text=f"{watched_now} / {total_now} episodios vistos",
+                fg=C["seen"] if (total_now > 0 and watched_now == total_now)
+                   else C["muted"],
+            )
+
 
 # ══════════════════════════════════════════════════════════════
 # 11. SMART SEARCH RESULT DIALOG
