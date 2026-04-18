@@ -36,10 +36,16 @@ Same scale as Phase 2 (inherited). Phase 3 adds only two new widgets — badge a
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Badge left margin from poster edge (`x=2`); badge padx=3 |
+| xs | 4px | Badge padx=3 (nearest grid step to 3) |
 | sm | 8px | Disabled button `pady=(8, 0)` (matches enabled button pack) |
 | md | 16px | Not used in Phase 3 specifically |
 | lg | 24px | Not used in Phase 3 specifically |
+
+### Exceptions
+
+| Value | Location | Justification |
+|-------|----------|---------------|
+| `x=2` | Badge left margin from poster edge (`place(x=2, ...)`) | Codebase-inherited coordinate. Matches existing ✓ VISTO / ⏳ PDTE badge pattern at `Videoclub` line 1393 (`place(x=2, y=2)`). The `.place()` coordinate system in Tkinter works in raw pixels; aligning to the existing badge x-origin takes precedence over the 4-point grid. This value must not be changed to 4 — doing so would misalign the new badge relative to the established badge column. |
 
 Specific badge coordinates:
 - `x=2` — left edge, 2px from poster zone left edge (matches ✓ VISTO / ⏳ PDTE badge x position)
@@ -162,7 +168,8 @@ Visual differences between enabled and disabled state:
 | `command` | `_open_seasons(...)` | none — state=disabled blocks all click events |
 | Tooltip | none | `"Re-añade la serie via búsqueda para activar"` |
 
-Click behavior on disabled button: `state="disabled"` blocks all click events — no additional handler, no dialog, no toast. The tooltip is the complete feedback mechanism (BACK-02 satisfied by tooltip).
+Click behavior on disabled button: `state="disabled"` absorbs click — nothing happens.
+Tooltip is the complete feedback mechanism (BACK-02 satisfied by tooltip).
 
 Source: 03-CONTEXT.md D-08, D-09, D-10, D-11.
 
