@@ -22,15 +22,19 @@ Saber exactamente en qué punto dejaste una serie y poder marcar episodios visto
 - ✓ Setup wizard para API keys (OMDb, TMDb) — existing
 - ✓ Motor de recomendación aleatorio filtrable por género — existing
 
+### Validated
+
+- ✓ Vista de temporadas: `SeasonViewWindow` modal con tabs por temporada — Validated in Phase 2: SeasonViewWindow
+- ✓ Carga de datos desde TMDb API (`fetch_tmdb_season_episodes`) — Validated in Phase 2: SeasonViewWindow
+- ✓ Marcar episodios con checkbox; escribe a SQLite inmediatamente — Validated in Phase 2: SeasonViewWindow
+- ✓ Progreso por temporada: contador "X/Y episodios vistos" actualizado en cada toggle — Validated in Phase 2: SeasonViewWindow
+- ✓ Persistencia en `episode_progress` SQLite — Validated in Phase 1: DB + API Foundation
+- ✓ Acceso desde DetailWindow: botón "📺 Ver temporadas" condicional a series con tmdb_id — Validated in Phase 2: SeasonViewWindow
+
 ### Active
 
-- [ ] Vista de temporadas: ventana nueva que muestra todas las temporadas de una serie con sus episodios
-- [ ] Carga de datos de temporadas/episodios desde TMDb API (endpoint `/tv/{id}/season/{n}`)
-- [ ] Marcar episodios individuales como vistos con checkbox por episodio
-- [ ] Progreso por temporada visible en la vista (X/Y episodios vistos)
-- [ ] Persistencia del progreso en SQLite (nueva tabla `episode_progress`)
-- [ ] Acceso desde la ventana de detalle de una serie (botón "Ver temporadas")
 - [ ] Indicador de progreso en la tarjeta del grid para series con episodios marcados
+- [ ] Compatibilidad retroactiva: series sin tmdb_id muestran botón deshabilitado o no lo muestran
 
 ### Out of Scope
 
@@ -61,10 +65,12 @@ Saber exactamente en qué punto dejaste una serie y poder marcar episodios visto
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| TMDb como fuente de datos de episodios | Tiene endpoint detallado por temporada con nombres, fechas y sinopsis de cada ep | — Pending |
-| Nueva tabla `episode_progress` en lugar de extender `watched` | `watched` usa `title` como FK y es para el ítem completo; episodios necesitan granularidad distinta | — Pending |
-| Persistir `tmdb_id` en tabla `items` | Necesario para llamar a la API de temporadas sin re-buscar | — Pending |
-| Ventana nueva para vista de temporadas (Toplevel) | Consistente con DetailWindow y otros diálogos de la app | — Pending |
+| TMDb como fuente de datos de episodios | Tiene endpoint detallado por temporada con nombres, fechas y sinopsis de cada ep | Validated Phase 1+2 |
+| Nueva tabla `episode_progress` en lugar de extender `watched` | `watched` usa `title` como FK y es para el ítem completo; episodios necesitan granularidad distinta | Validated Phase 1 |
+| Persistir `tmdb_id` en tabla `items` | Necesario para llamar a la API de temporadas sin re-buscar | Validated Phase 1 |
+| Ventana nueva para vista de temporadas (Toplevel) | Consistente con DetailWindow y otros diálogos de la app | Validated Phase 2 |
+| `_season_pool` separado de `_poster_pool` (max_workers=2) | Evita competir con posters por workers; satura menos la API de TMDb | Validated Phase 2 |
+| `SeasonViewWindow` en fichero único Videoclub bajo sección 10.5 | Consistente con arquitectura mono-fichero; no requiere imports entre módulos | Validated Phase 2 |
 
 ## Evolution
 
@@ -84,4 +90,4 @@ Este documento evoluciona en cada transición de fase y milestone.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after initialization*
+*Last updated: 2026-04-18 — Phase 2 complete (SeasonViewWindow)*
