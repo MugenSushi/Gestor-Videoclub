@@ -1773,6 +1773,55 @@ class DetailWindow(tk.Toplevel):
             self.destroy()
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 10.5. SEASON VIEW WINDOW
+# ══════════════════════════════════════════════════════════════════════
+
+class SeasonViewWindow(tk.Toplevel):
+    """Modal Toplevel que muestra temporadas y episodios de una serie."""
+
+    def __init__(self, parent, item: dict, user_id: int,
+                 db: "Database", on_refresh, app_root: tk.Tk):
+        super().__init__(parent)
+        self.item       = item
+        self.user_id    = user_id
+        self.db         = db
+        self.on_refresh = on_refresh
+        self.app_root   = app_root
+        self._tmdb_id   = str(item.get("tmdb_id") or "")
+        self._item_id   = item["id"]
+        self._destroyed = False
+
+        self._loaded_seasons: set  = set()
+        self._season_frames: dict  = {}
+        self._season_cache:  dict  = {}
+        self._season_bvars:  dict  = {}
+        self._prog_labels:   dict  = {}
+
+        self.title(f"Temporadas — {item['title'][:50]}")
+        self.configure(bg=C["bg"])
+        self.resizable(True, True)
+        self.minsize(560, 400)
+        self.geometry("700x520")
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+        self.bind("<Escape>", lambda e: self._on_close())
+        self._center()
+        self._show_seasons_spinner()
+
+    def _center(self):
+        self.update_idletasks()
+        x = (self.winfo_screenwidth()  - self.winfo_width())  // 2
+        y = max(0, (self.winfo_screenheight() - self.winfo_height()) // 2)
+        self.geometry(f"+{x}+{y}")
+
+    def _on_close(self):
+        self._destroyed = True
+        if callable(self.on_refresh):
+            self.on_refresh()
+        self.destroy()
+
+
 # ══════════════════════════════════════════════════════════════
 # 11. SMART SEARCH RESULT DIALOG
 # ══════════════════════════════════════════════════════════════
