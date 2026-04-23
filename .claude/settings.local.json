@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs commit 'docs: initialize project' --files .planning/PROJECT.md)",
+      "Bash(git -C /d/VideoClub config user.email \"mamat@videoclub.local\")",
+      "Bash(git -C /d/VideoClub config user.name \"mamat\")",
+      "Bash(git -C /d/VideoClub add .planning/PROJECT.md)",
+      "Bash(git -C /d/VideoClub commit -m \"docs: initialize project\")",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs config-new-project '{\"mode\":\"yolo\",\"granularity\":\"coarse\",\"parallelization\":true,\"commit_docs\":true,\"model_profile\":\"balanced\",\"workflow\":{\"research\":true,\"plan_check\":true,\"verifier\":true,\"nyquist_validation\":false}}')",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(find /d/VideoClub -maxdepth 1 -type d -not -name \".*\" -not -name \"node_modules\" -exec test -d \"{}/.git\" \\\\; -print)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs agent-skills gsd-project-researcher)",
+      "Skill(gsd-plan-phase)",
+      "Skill(gsd-plan-phase:*)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs state planned-phase --phase 2 --name SeasonViewWindow --plans 3)",
+      "Skill(gsd-code-review)",
+      "Skill(gsd-code-review:*)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs commit 'docs\\(phase-02\\): evolve PROJECT.md after phase completion' --files .planning/PROJECT.md)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs state planned-phase --phase 3 --name 'Polish + Retrocompat' --plans 2)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs commit 'docs\\(03\\): add phase 3 plans \\(2 plans, 2 waves\\)' --files '.planning/phases/03-polish-retrocompat/03-01-PLAN.md .planning/phases/03-polish-retrocompat/03-02-PLAN.md .planning/STATE.md')",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('/d/VideoClub/.claude/worktrees/agent-a049e325/Videoclub'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('d:/VideoClub/.claude/worktrees/agent-a049e325/Videoclub'\\).read\\(\\)\\); print\\('syntax OK'\\)\")"
+    ]
+  }
+}

@@ -767,6 +767,23 @@ class Database:
             lines.append(f"{i.get('title','')}{yr}  [{i.get('type','').upper()}]  {st}{dir_}")
         Path(path).write_text("\n".join(lines), encoding="utf-8")
 
+    def get_items_missing_tmdb(self, user_id: int) -> list:
+        """Devuelve ítems del usuario que no tienen tmdb_id."""
+        return [dict(i) for i in self.conn.execute(
+            """SELECT i.* FROM items i
+               JOIN user_items ui ON ui.title=i.title AND ui.user_id=?
+               WHERE (i.tmdb_id IS NULL OR i.tmdb_id='')""",
+            (user_id,)
+        ).fetchall()]
+
+    def update_tmdb_id(self, title: str, tmdb_id: str, num_seasons: int = 0) -> None:
+        """Actualiza tmdb_id y num_seasons de un ítem."""
+        self.conn.execute(
+            "UPDATE items SET tmdb_id=?, num_seasons=? WHERE title=?",
+            (tmdb_id, num_seasons, title)
+        )
+        self.conn.commit()
+
     def get_items_missing_meta(self, user_id: int) -> list:
         """Devuelve ítems del usuario que tienen director/actores vacíos."""
         return [dict(i) for i in self.conn.execute(
@@ -2761,6 +2778,154 @@ class RefreshMetaDialog(tk.Toplevel):
         self.destroy()
 
 
+class RefreshTmdbDialog(tk.Toplevel):
+    """Busca y rellena tmdb_id + num_seasons para ítems que no lo tienen,
+    activando funciones como 'Ver temporadas' en series legacy."""
+
+    def __init__(self, parent, db: Database, user_id: int, on_done, app_root):
+        super().__init__(parent)
+        self.title("Reactivar funciones (TMDb)")
+        self.configure(bg=C["bg"])
+        self.resizable(False, False)
+        self.grab_set()
+        self.db       = db
+        self.user_id  = user_id
+        self.on_done  = on_done
+        self.app_root = app_root
+        self._stop    = threading.Event()
+        self._build()
+        self._center()
+        self.protocol("WM_DELETE_WINDOW", self._cancel)
+        self.bind("<Escape>", lambda _: self._cancel())
+
+    def _center(self):
+        self.update_idletasks()
+        x = (self.winfo_screenwidth()  - self.winfo_width())  // 2
+        y = (self.winfo_screenheight() - self.winfo_height()) // 2
+        self.geometry(f"+{x}+{y}")
+
+    def _build(self):
+        f = tk.Frame(self, bg=C["bg"], padx=28, pady=20)
+        f.pack(fill="both", expand=True)
+
+        tk.Label(f, text="🔗 Reactivar funciones (TMDb)", bg=C["bg"], fg=C["text"],
+                 font=(FONT_FAMILY, 14, "bold")).pack(anchor="w", pady=(0, 4))
+
+        if not CFG.get("tmdb_api_key"):
+            tk.Label(f, text="⚠ No hay clave TMDb configurada.\nVe a Configuración → TMDb API Key.",
+                     bg=C["bg"], fg=C["pending"],
+                     font=(FONT_FAMILY, 10), justify="left").pack(anchor="w", pady=8)
+            tk.Button(f, text="Cerrar", bg=C["surface"], fg=C["text"],
+                      font=(FONT_FAMILY, 10), relief="flat",
+                      padx=14, pady=5, cursor="hand2",
+                      command=self.destroy).pack(anchor="e", pady=(8, 0))
+            return
+
+        pending = self.db.get_items_missing_tmdb(self.user_id)
+        self._total = len(pending)
+
+        if self._total == 0:
+            tk.Label(f, text="✅ Todos los títulos ya tienen TMDb ID.",
+                     bg=C["bg"], fg=C["seen"],
+                     font=(FONT_FAMILY, 10)).pack(anchor="w", pady=8)
+            tk.Button(f, text="Cerrar", bg=C["surface"], fg=C["text"],
+                      font=(FONT_FAMILY, 10), relief="flat",
+                      padx=14, pady=5, cursor="hand2",
+                      command=self.destroy).pack(anchor="e", pady=(8, 0))
+            return
+
+        tk.Label(f,
+                 text=f"{self._total} títulos sin TMDb ID.\n"
+                      "Se buscará cada uno en TMDb para rellenar tmdb_id y\n"
+                      "activar funciones como 'Ver temporadas' en series.",
+                 bg=C["bg"], fg=C["muted"],
+                 font=(FONT_FAMILY, 9), wraplength=480,
+                 justify="left").pack(anchor="w", pady=(0, 12))
+
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("RT.Horizontal.TProgressbar",
+                         troughcolor=C["border"], background=C["accent"],
+                         bordercolor=C["border"],
+                         lightcolor=C["accent"], darkcolor=C["accent"])
+        self._bar = ttk.Progressbar(f, style="RT.Horizontal.TProgressbar",
+                                     orient="horizontal", length=480,
+                                     mode="determinate", maximum=self._total)
+        self._bar.pack(fill="x", pady=(0, 6))
+
+        self._lbl = tk.Label(f, text="Preparando…", bg=C["bg"], fg=C["muted"],
+                              font=(FONT_FAMILY, 9), anchor="w")
+        self._lbl.pack(fill="x")
+
+        self._count_lbl = tk.Label(f, text=f"0 / {self._total}", bg=C["bg"],
+                                    fg=C["text"], font=(FONT_FAMILY, 9))
+        self._count_lbl.pack(anchor="e")
+
+        bf = tk.Frame(f, bg=C["bg"])
+        bf.pack(fill="x", pady=(14, 0))
+        self._start_btn = tk.Button(bf, text="▶ Iniciar", bg=C["accent"], fg="white",
+                                     font=(FONT_FAMILY, 11, "bold"), relief="flat",
+                                     padx=16, pady=6, cursor="hand2",
+                                     command=lambda: self._start(pending))
+        self._start_btn.pack(side="left")
+        tk.Button(bf, text="Cancelar", bg=C["surface"], fg=C["muted"],
+                  font=(FONT_FAMILY, 10), relief="flat",
+                  padx=12, pady=5, cursor="hand2",
+                  command=self._cancel).pack(side="left", padx=(8, 0))
+
+    def _start(self, pending: list):
+        self._start_btn.config(state="disabled", text="Buscando…")
+        self._stop.clear()
+        threading.Thread(target=self._worker, args=(pending,), daemon=True).start()
+
+    def _worker(self, pending: list):
+        updated = 0
+        for idx, item in enumerate(pending, 1):
+            if self._stop.is_set():
+                break
+            title = item["title"]
+            itype = item.get("type", "movie")
+            self.after(0, lambda t=title, i=idx: self._update_ui(t, i))
+
+            type_hint = "series" if itype == "series" else "movie"
+            results = fetch_tmdb_multi(title, type_hint)
+            if not results:
+                results = fetch_tmdb_multi(title)
+
+            if results:
+                best = results[0]
+                tmdb_id = best.get("_tmdb_id", "")
+                num_seasons = 0
+                if tmdb_id and itype == "series":
+                    detail = fetch_tmdb_detail(tmdb_id, "tv")
+                    num_seasons = detail.get("_num_seasons", 0) or 0
+                if tmdb_id:
+                    self.db.update_tmdb_id(title, tmdb_id, num_seasons)
+                    updated += 1
+
+        self.after(0, lambda: self._done(updated))
+
+    def _update_ui(self, title: str, idx: int):
+        if not self.winfo_exists():
+            return
+        short = title[:45] + "…" if len(title) > 45 else title
+        self._lbl.config(text=f"🔍 {short}")
+        self._bar["value"] = idx
+        self._count_lbl.config(text=f"{idx} / {self._total}")
+
+    def _done(self, updated: int):
+        if not self.winfo_exists():
+            return
+        self._lbl.config(text=f"✅ Completado — {updated} títulos actualizados.", fg=C["seen"])
+        self._start_btn.config(state="disabled")
+        show_toast(self.app_root, f"{updated} títulos con TMDb activado")
+        self.on_done()
+
+    def _cancel(self):
+        self._stop.set()
+        self.destroy()
+
+
 # ══════════════════════════════════════════════════════════════
 # 13. BATCH IMPORT  (BUG3 FIX: elimina añadidos del text widget)
 # ══════════════════════════════════════════════════════════════
@@ -4036,6 +4201,7 @@ class VideoclubApp(tk.Tk):
         # ── VISTA ─────────────────────────────────────────
         m.add_command(label="🔄  Actualizar vista",      command=self.refresh)
         m.add_command(label="🔄  Actualizar metadata…",  command=self._open_refresh_meta)
+        m.add_command(label="🔗  Reactivar funciones (TMDb)…", command=self._open_refresh_tmdb)
         m.add_command(label="⚙  Configuración",          command=lambda: SetupWizard(self, self.refresh))
 
         # Posicionar bajo el botón
@@ -4144,6 +4310,9 @@ class VideoclubApp(tk.Tk):
 
     def _open_refresh_meta(self):
         RefreshMetaDialog(self, self.db, self.active_user_id, self.refresh, self)
+
+    def _open_refresh_tmdb(self):
+        RefreshTmdbDialog(self, self.db, self.active_user_id, self.refresh, self)
 
     def _set_filter(self, ftype: str):
         self.filter_type.set(ftype)

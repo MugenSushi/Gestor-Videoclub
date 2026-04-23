@@ -37,7 +37,7 @@ rhythm derived from code inspection. The following values are declared for Phase
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon-to-text gap inside episode rows; checkbox left padding |
+| xs | 4px | Icon-to-text gap inside episode rows; checkbox left padding; episode row gap |
 | sm | 8px | Episode row inner padding (padx); section separator height |
 | md | 16px | Window outer padding (padx/pady on main frame) |
 | lg | 24px | Vertical breathing room above/below season header block |
@@ -46,9 +46,9 @@ rhythm derived from code inspection. The following values are declared for Phase
 | 3xl | 64px | Not used in this phase |
 
 Exceptions:
-- Episode row height is content-driven (no fixed height); `pady=2` between rows keeps density high.
-- Season header uses `pady=(6, 4)` for asymmetric spacing (tighter below than above).
-- ttk.Notebook tab padding: `[10, 4]` (horizontal, vertical) — from ARCHITECTURE.md Style override.
+- Episode row height is content-driven (no fixed height); `pady=4` (xs token) between rows keeps density high while respecting the 4-point scale.
+- Season header uses `pady=(8, 4)` for asymmetric spacing — sm (8px) above, xs (4px) below — tighter below to reduce visual gap before the episode list separator.
+- ttk.Notebook tab padding: `[10, 4]` (horizontal, vertical) — ttk framework-imposed — value sourced from ARCHITECTURE.md Style override; changing it would break visual alignment with existing app ttk components.
 - Touch target minimum: checkboxes are 20×20px minimum; Tkinter Checkbutton default satisfies this on 96 DPI.
 
 Source: ARCHITECTURE.md episode row code examples; existing `DetailWindow._build()` padding patterns at lines 1525–1530.
@@ -62,7 +62,7 @@ All text uses `FONT_FAMILY` ("Segoe UI"). Tkinter font tuples: `(FONT_FAMILY, si
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Window title | 16px | bold | 1.2 (Tkinter default) | `SeasonViewWindow` title label at top (if rendered inside window) |
-| Season name (tab label) | 9px | normal | n/a (tab label) | ttk.Notebook tab text — "T1", "T2", "Especiales" |
+| Season tab label (strip) | 9px | normal | n/a (tab label) | ttk.Notebook tab text — "T1", "T2", "Especiales" |
 | Episode number + title | 9px | normal | 1.4 | Episode row label — primary content |
 | Progress counter | 9px | normal | 1.4 | "X / Y episodios vistos" in season header |
 | Air date | 8px | normal | 1.4 | Right-aligned date label per episode row |
@@ -141,10 +141,10 @@ Source: ARCHITECTURE.md §Pitfalls Specific to This Integration; PITFALLS.md §P
 
 ### Season Header (per tab, inside tab frame)
 
-Layout: horizontal strip at top of tab frame, `bg=C["surface"]`, `padx=8, pady=6`.
+Layout: horizontal strip at top of tab frame, `bg=C["surface"]`, `padx=8, pady=(8, 4)`.
 
 Left side:
-- Season name label — `font=(FONT_FAMILY, 10, "bold")`, `fg=C["text"]`
+- Season header name label (inside tab) — `font=(FONT_FAMILY, 10, "bold")`, `fg=C["text"]`
 - Progress counter label — `font=(FONT_FAMILY, 9)`, `fg=C["muted"]`
   - Format: `"X / Y episodios vistos"`
   - Updates immediately on every checkbox toggle (in-place `.config(text=...)`)
@@ -178,7 +178,7 @@ Source: ARCHITECTURE.md §Question 6; PITFALLS.md §Canvas scroll on Windows.
 
 ### Episode Row (per episode, inside inner Frame)
 
-Layout: `tk.Frame(inner, bg=C["surface"], pady=2)`, `pack(fill="x", padx=8, pady=2)`
+Layout: `tk.Frame(inner, bg=C["surface"])`, `pack(fill="x", padx=8, pady=4)`
 
 Left to right:
 1. `tk.Checkbutton` — `bg=C["surface"]`, `fg=C["text"]`, `activebackground=C["surface"]`, `selectcolor=C["bg"]`, `relief="flat"`, `cursor="hand2"`, `variable=BooleanVar`
@@ -188,7 +188,7 @@ Left to right:
    - Watched: `fg=C["text"]`, font normal
    - Unwatched (past): `fg=C["muted"]`, font normal
    - Future (unaired): `fg=C["muted"]`, font normal — visually identical to unwatched; checkbox disabled is the key distinction
-3. Air date label — `text=ep_date[:7]` (YYYY-MM format), `fg=C["border"]`, `font=(FONT_FAMILY, 8)`, `pack(side="right", padx=6)`
+3. Air date label — `text=ep_date[:7]` (YYYY-MM format), `fg=C["border"]`, `font=(FONT_FAMILY, 8)`, `pack(side="right", padx=8)`
    - Omitted if `ep_date` is empty string
 
 Hover: `row.bind("<Enter>", lambda e: row.config(bg=C["hover"]))` + `row.bind("<Leave>", lambda e: row.config(bg=C["surface"]))`
@@ -199,14 +199,14 @@ Source: ARCHITECTURE.md §Question 6 episode row helper; FEATURES.md §Episode r
 
 Shown immediately when tab is selected and not yet loaded:
 - `tk.Label(tab_frame, text="Cargando temporada...", bg=C["bg"], fg=C["muted"], font=(FONT_FAMILY, 10))`
-- `.pack(pady=20)`
+- `.pack(pady=16)`
 - Destroyed in `_on_done()` callback (always via `self.after(0, ...)` — never from worker thread)
 
 ### Error State (per tab)
 
 Shown when `fetch_tmdb_season_episodes` returns `{}`:
 - `tk.Label(tab_frame, text="No se pudo cargar la temporada.", bg=C["bg"], fg=C["muted"], font=(FONT_FAMILY, 10))`
-- `.pack(pady=20)`
+- `.pack(pady=16)`
 
 For HTTP 404 (season not yet in TMDb):
 - `text="Esta temporada aún no tiene datos en TMDb."`
@@ -225,7 +225,7 @@ This is Phase 2's entry point — a new button added to the existing `DetailWind
 - Style: `bg=C["accent"]`, `fg="white"`, `font=(FONT_FAMILY, 9)`, `relief="flat"`, `cursor="hand2"`
 - Text: `"📺 Ver temporadas"`
 - Command: `lambda: self._open_seasons(tmdb_id, num_seasons)`
-- `pack(fill="x", pady=(6, 0))`
+- `pack(fill="x", pady=(8, 0))`
 
 For series with `tmdb_id = NULL` (Phase 3 concern — BACK-01/02): button is NOT shown in Phase 2. The guard `if tmdb_id:` is sufficient.
 
